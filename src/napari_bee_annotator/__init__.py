@@ -4,17 +4,7 @@ except ImportError:
     __version__ = "unknown"
 
 from ._reader import napari_get_reader
-from ._widget import (
-    ExampleQWidget,
-    ImageThreshold,
-    threshold_autogenerate_widget,
-    threshold_magic_widget,
-)
+from ._widget import Annotator
+from ._writer import write_single_tracks_layer
 
-__all__ = (
-    "napari_get_reader",
-    "ExampleQWidget",
-    "ImageThreshold",
-    "threshold_autogenerate_widget",
-    "threshold_magic_widget",
-)
+__all__ = ("Annotator", "write_single_tracks_layer", "napari_get_reader")

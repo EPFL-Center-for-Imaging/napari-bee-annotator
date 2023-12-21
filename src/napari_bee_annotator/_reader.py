@@ -5,6 +5,7 @@ It implements the Reader specification, but your plugin may choose to
 implement multiple readers or even other plugin contributions. see:
 https://napari.org/stable/plugins/guides.html?#readers
 """
+
 import numpy as np
 
 
@@ -29,7 +30,7 @@ def napari_get_reader(path):
         path = path[0]
 
     # if we know we cannot read the file, we immediately return None.
-    if not path.endswith(".npy"):
+    if not path.endswith(".csv"):
         return None
 
     # otherwise we return the *function* that can read ``path``.
@@ -61,12 +62,22 @@ def reader_function(path):
     # handle both a string and a list of strings
     paths = [path] if isinstance(path, str) else path
     # load all files into array
-    arrays = [np.load(_path) for _path in paths]
+    arrays = [np.genfromtxt(_path, delimiter=",") for _path in paths]
     # stack arrays into single array
-    data = np.squeeze(np.stack(arrays))
+    direction_arrays = [array[:, 0] for array in arrays]
+    data_arrays = [array[:, 1:] for array in arrays]
 
-    # optional kwargs for the corresponding viewer.add_* method
-    add_kwargs = {}
+    layer_type = "tracks"
 
-    layer_type = "image"  # optional, default is "image"
-    return [(data, add_kwargs, layer_type)]
+    layer_data_tuples = []
+
+    for directions, data in zip(direction_arrays, data_arrays):
+        # optional kwargs for the corresponding viewer.add_* method
+        add_kwargs = {
+            "properties": {"Direction": directions},
+            "colormap": "viridis",
+            "color_by": "Direction",
+            "tail_width": 5,
+        }
+        layer_data_tuples.append((data, add_kwargs, layer_type))
+    return layer_data_tuples
