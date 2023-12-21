@@ -1,4 +1,9 @@
+<img style="float: right;" src="https://imaging.epfl.ch/resources/logo-for-gitlab.svg">
+
+
 # napari-bee-annotator
+Developed by the [EPFL Center for Imaging](https://imaging.epfl.ch/) for the [Mobile Robotic Systems Group](https://www.epfl.ch/labs/mobots/) in Dec 2023.
+This napari plugin provides an easy way for the researches to annotate honey bees leaving/entering the hive. The annotations will serve as ground truth for the validation of various automated animal tracking approaches.
 
 [![License BSD-3](https://img.shields.io/pypi/l/napari-bee-annotator.svg?color=green)](https://github.com/EPFL-Center-for-Imaging/napari-bee-annotator/raw/main/LICENSE)
 [![PyPI](https://img.shields.io/pypi/v/napari-bee-annotator.svg?color=green)](https://pypi.org/project/napari-bee-annotator)
