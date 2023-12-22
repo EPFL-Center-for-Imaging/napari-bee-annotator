@@ -1,66 +1,101 @@
+from unittest.mock import Mock
+
+import napari
 import numpy as np
+import pytest
 
-from napari_bee_annotator._widget import (
-    ExampleQWidget,
-    ImageThreshold,
-    threshold_autogenerate_widget,
-    threshold_magic_widget,
-)
-
-
-def test_threshold_autogenerate_widget():
-    # because our "widget" is a pure function, we can call it and
-    # test it independently of napari
-    im_data = np.random.random((100, 100))
-    thresholded = threshold_autogenerate_widget(im_data, 0.5)
-    assert thresholded.shape == im_data.shape
-    # etc.
+from napari_bee_annotator._widget import Annotator
 
 
 # make_napari_viewer is a pytest fixture that returns a napari viewer object
 # you don't need to import it, as long as napari is installed
 # in your testing environment
-def test_threshold_magic_widget(make_napari_viewer):
+@pytest.mark.parametrize("orientation", ["Vertical", "Horizontal"])
+@pytest.mark.parametrize("dt", [5, 10])
+@pytest.mark.parametrize("dx", [5, 10])
+def test_annotator_integration(make_napari_viewer, orientation, dt, dx):
     viewer = make_napari_viewer()
-    layer = viewer.add_image(np.random.random((100, 100)))
+    _widget = Annotator(viewer)
 
-    # our widget will be a MagicFactory or FunctionGui instance
-    my_widget = threshold_magic_widget()
-
-    # if we "call" this object, it'll execute our function
-    thresholded = my_widget(viewer.layers[0], 0.5)
-    assert thresholded.shape == layer.data.shape
-    # etc.
-
-
-def test_image_threshold_widget(make_napari_viewer):
-    viewer = make_napari_viewer()
-    layer = viewer.add_image(np.random.random((100, 100)))
-    my_widget = ImageThreshold(viewer)
+    # check that a tracks layer was added
+    assert len(viewer.layers) == 1
+    tracks_layer = viewer.layers["Tracks"]
+    assert isinstance(tracks_layer, napari.layers.Tracks)
 
     # because we saved our widgets as attributes of the container
     # we can set their values without having to "interact" with the viewer
-    my_widget._image_layer_combo.value = layer
-    my_widget._threshold_slider.value = 0.5
+    _widget._orientation_select.value = orientation
+    _widget._temporal_spinbox.value = dt
+    _widget._spatial_spinbox.value = dx
 
-    # this allows us to run our functions directly and ensure
-    # correct results
-    my_widget._threshold_im()
-    assert len(viewer.layers) == 2
+    # Add a track with a fake click event
+    mock_event = Mock()
+    mock_event.button = 1
+    mock_event.position = (10, 35.4, 50.2)
+    mock_event.modifiers = []
+    _widget.on_click(tracks_layer, mock_event)
+    # Assertions
+    _validate_tracks_layer(tracks_layer, expected_n_tracks=2)
+    _validate_track(
+        tracks_layer,
+        track_id=1,
+        expected_n_points=2 * dt + 1,
+        expected_direction=1,
+    )
+
+    # Add another track with a fake click event
+    mock_event.position = (15, 33.8, 17.4)
+    mock_event.modifiers = ["Shift"]
+    _widget.on_click(tracks_layer, mock_event)
+    # Assertions
+    _validate_tracks_layer(tracks_layer, expected_n_tracks=3)
+    _validate_track(
+        tracks_layer,
+        track_id=2,
+        expected_n_points=2 * dt + 1,
+        expected_direction=0,
+    )
+
+    # Add another track with a fake click event
+    mock_event.position = (50, 70.4, 25.3)
+    mock_event.modifiers = []
+    _widget.on_click(tracks_layer, mock_event)
+    # Assertions
+    _validate_tracks_layer(tracks_layer, expected_n_tracks=4)
+    _validate_track(
+        tracks_layer,
+        track_id=3,
+        expected_n_points=2 * dt + 1,
+        expected_direction=1,
+    )
+
+    # Remove a track
+    mock_event.button = 2
+    mock_event.position = (17, 32.8, 20.4)
+    mock_event.modifiers = []
+    _widget.on_click(tracks_layer, mock_event)
+    # Assertions
+    _validate_tracks_layer(tracks_layer, expected_n_tracks=3)
+    _validate_track(
+        tracks_layer,
+        track_id=2,
+        expected_n_points=0,
+        expected_direction=None,
+    )
 
 
-# capsys is a pytest fixture that captures stdout and stderr output streams
-def test_example_q_widget(make_napari_viewer, capsys):
-    # make viewer and add an image layer using our fixture
-    viewer = make_napari_viewer()
-    viewer.add_image(np.random.random((100, 100)))
+def _validate_tracks_layer(layer, expected_n_tracks):
+    # check that there are expected_n_tracks track_ids
+    assert len(set(layer.data[:, 0])) == expected_n_tracks
 
-    # create our widget, passing in the viewer
-    my_widget = ExampleQWidget(viewer)
 
-    # call our widget method
-    my_widget._on_click()
-
-    # read captured output and check that it's as we expected
-    captured = capsys.readouterr()
-    assert captured.out == "napari has 1 layers\n"
+def _validate_track(layer, track_id, expected_n_points, expected_direction):
+    mask = layer.data[:, 0] == track_id
+    n_points = layer.data[mask].shape[0]
+    # Check the number of points
+    assert n_points == expected_n_points
+    # check direction
+    directions = layer.properties["Direction"][mask]
+    assert len(directions) == n_points
+    if expected_direction is not None:
+        np.testing.assert_allclose(directions, expected_direction)
