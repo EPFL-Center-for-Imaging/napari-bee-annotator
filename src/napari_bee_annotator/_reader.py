@@ -74,7 +74,7 @@ def reader_function(path):
     for directions, data in zip(direction_arrays, data_arrays):
         # optional kwargs for the corresponding viewer.add_* method
         add_kwargs = {
-            "properties": {"Direction": directions},
+            "properties": {"Direction": directions.astype(np.uint32)},
             "colormap": "viridis",
             "color_by": "Direction",
             "tail_width": 5,
