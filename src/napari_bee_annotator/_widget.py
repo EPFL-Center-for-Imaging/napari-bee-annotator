@@ -82,6 +82,7 @@ class Annotator(Container):
         points = []
         for dt in range(-temp_spread, temp_spread + 1):
             t = origin[1] + dt
+            t = max(t, 0)
             dx = spatial_spread * dt / temp_spread
             if direction == 1:
                 dx = -dx
@@ -100,8 +101,8 @@ class Annotator(Container):
         layer.data = np.concatenate((layer.data, new_track), axis=0)
 
         layer.properties = {
+            "Direction": directions.astype(np.uint32),
             "track_id": layer.data[:, 0].astype(np.uint32),
-            "Direction": directions,
         }
         layer.color_by = "Direction"
         layer.refresh()
@@ -116,8 +117,8 @@ class Annotator(Container):
         layer.data = layer.data[mask]
         directions = directions[mask]
         layer.properties = {
+            "Direction": directions.astype(np.uint32),
             "track_id": layer.data[:, 0].astype(np.uint32),
-            "Direction": directions,
         }
         layer.color_by = "Direction"
         layer.refresh()
