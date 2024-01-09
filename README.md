@@ -12,20 +12,6 @@ This napari plugin provides an easy way for the researches to annotate honey bee
 [![codecov](https://codecov.io/gh/EPFL-Center-for-Imaging/napari-bee-annotator/branch/main/graph/badge.svg)](https://codecov.io/gh/EPFL-Center-for-Imaging/napari-bee-annotator)
 [![napari hub](https://img.shields.io/endpoint?url=https://api.napari-hub.org/shields/napari-bee-annotator)](https://napari-hub.org/plugins/napari-bee-annotator)
 
-Napari plugin for the annotation of bee entering and leaving the hive.
-
-----------------------------------
-
-This [napari] plugin was generated with [Cookiecutter] using [@napari]'s [cookiecutter-napari-plugin] template.
-
-<!--
-Don't miss the full getting started guide to set up your new package:
-https://github.com/napari/cookiecutter-napari-plugin#getting-started
-
-and review the napari docs for plugin developers:
-https://napari.org/stable/plugins/index.html
--->
-
 ## Installation
 
 You can install `napari-bee-annotator` via [pip]:
@@ -38,6 +24,15 @@ To install latest development version :
 
     pip install git+https://github.com/EPFL-Center-for-Imaging/napari-bee-annotator.git
 
+## Getting started
+
+1. Open napari with the plugin and your video using the following command `napari -w napari-bee-annotator --plugin video path/to/video.mp4`. Note that you need to have [napari_video](https://www.napari-hub.org/plugins/napari_video) installed to read `mp4` files.
+
+2. Select the orientation of your video: horizontal/vertical refers to the direction of the bee's leaving/entering the hive.
+
+3. Start annotating: A simple left click indicates a bee moving up or to the left depending on the orientation selected. You can hold down the shift key to annotate a bee moving down or to the right. Annotations can be deleted with a right click on the annotation you want to delete. To move to the next frame, you can either hold down `ctrl` and scroll with the mouse wheel or click on the play button. Playback parameters, such as the playback speed, can be changed by right clicking on the play button.
+
+4. Saving and loading tracks: To save a tracks layer selected from the list of layers and click on `File > Save selected layers`. Choose a name and the csv extension. If you want to continue to work on the annotations for a specific video, you first have to load the corresponding csv file by clicking on `Open with Plugin > Open file(s)...`. Select the file you want to load and click on open. A dialog should pop up that asks you to select the reader to use for loading the csv file. Select `Bee annotator`. Lastly, you have to tell the plugin to interact with the layer you just loaded by selecting it in the `Tracks layer` drop down menu.
 
 ## Contributing
 
